@@ -1,0 +1,16 @@
+{
+    "configurations": [
+        {
+            "name": "Microbit-ARM",
+            "includePath": [
+                "${workspaceFolder}/firmware/**"
+            ],
+            "compilerPath": "/usr/bin/arm-none-eabi-gcc",
+            "cStandard": "c11",
+            "cppStandard": "c++14",
+            "intelliSenseMode": "linux-gcc-arm",
+            "compileCommands": "${workspaceFolder}/firmware/build/compile_commands.json"
+        }
+    ],
+    "version": 4
+}

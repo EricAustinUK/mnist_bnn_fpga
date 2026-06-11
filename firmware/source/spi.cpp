@@ -11,5 +11,5 @@ void cnf_spi_pins(){
 }
 
 void send_arr(uint32_t *arr, uint32_t size){
-
+    
 }
