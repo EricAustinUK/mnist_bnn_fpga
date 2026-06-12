@@ -24,18 +24,21 @@ void busy_sleep(uint32_t delay_us){
 
 int main()
 {
+    // toggle top left LED on (sanity check)
     NRF_P0->PIN_CNF[MICROBIT_PIN_COL1] = 1;
     NRF_P0->PIN_CNF[MICROBIT_PIN_ROW1] = 1;
+    NRF_P0->OUTCLR =  (1 << MICROBIT_PIN_COL1);
+    NRF_P0->OUTSET =  (1 << MICROBIT_PIN_ROW1);
     
+    // set direction for FPGA adder inputs
     NRF_P0->PIN_CNF[P0_02] = 1;
     NRF_P0->PIN_CNF[P0_03] = 1;
     NRF_P0->PIN_CNF[P0_04] = 1;
 
-    NRF_P0->OUTCLR =  (1 << MICROBIT_PIN_COL1);
-    NRF_P0->OUTSET =  (1 << MICROBIT_PIN_ROW1);
-
+    // temp array to send over SPI
     volatile uint8_t send_arr[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
 
+    // starting bits for adder inputs
     volatile uint8_t drive_bits = 0b111;
 
     while(true){
