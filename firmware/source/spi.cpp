@@ -7,16 +7,16 @@ void cnf_spi_pins(){
     
     
 
+    NRF_SPIM3->PSEL.MOSI = 2; // send bits over external pin 0
     NRF_SPIM3->PSEL.SCK  = 3; // send clock signal over external pin 1
     NRF_SPIM3->PSEL.MISO = 0xFFFFFFFF;  // blanking MISO for now
-    NRF_SPIM3->PSEL.MOSI = 2; // send bits over external pin 0
     NRF_SPIM3->PSEL.CSN = 4; // send CS over external pin 2
     NRF_SPIM3->FREQUENCY = 0x80000000; // frequency to 8MHz
     NRF_SPIM3->CONFIG = 0b000;
     NRF_SPIM3->RXD.MAXCNT = 0;
 
-    NRF_P0->PIN_CNF[3] = 1;
     NRF_P0->PIN_CNF[2] = 1;
+    NRF_P0->PIN_CNF[3] = 1;
     NRF_P0->PIN_CNF[4] = 1;
     NRF_P0->OUTSET = (1 << 4);
 }
