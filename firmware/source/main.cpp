@@ -26,13 +26,6 @@ void busy_sleep(uint32_t delay_us){
 
 int main()
 {
-    // toggle top left LED on (sanity check)
-    NRF_P0->PIN_CNF[MICROBIT_PIN_COL1] = 1;
-    NRF_P0->PIN_CNF[MICROBIT_PIN_ROW1] = 1;
-    NRF_P0->OUTCLR =  (1 << MICROBIT_PIN_COL1);
-    NRF_P0->OUTSET =  (1 << MICROBIT_PIN_ROW1);
-
-
     // A 28x28 matrix pattern with varied row boundaries and a diagonal step
     volatile uint32_t test_image[28] = {
         0x0AFFFFFF,
