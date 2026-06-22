@@ -1,7 +1,5 @@
 #include "MicroBit.h"
 
-
-
 extern void spi_send_arr(volatile uint32_t * arr, uint32_t size, bool big_endian);
 
 void busy_sleep(uint32_t delay_us){

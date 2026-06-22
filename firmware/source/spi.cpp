@@ -1,4 +1,6 @@
 #include "nrf.h"
+#include "camera_regs.h"
+
 #define CAM_CSN 9
 #define NANO_CSN 4
 
@@ -14,7 +16,7 @@ void cnf_spi_pins(){
     NRF_SPIM3->PSEL.CSN = 0xFFFFFFFF; // blank to manually set CS pins now
     NRF_SPIM3->FREQUENCY = 0x80000000; // frequency to 8MHz
     NRF_SPIM3->CONFIG = 0b000;
-    NRF_SPIM3->RXD.MAXCNT = 0;
+    NRF_SPIM3->RXD.MAXCNT = 0; // TODO: change to allow buffering of image
 
     NRF_SPIM3->ENABLE = 0b111; // enable SPI peripheral
 
@@ -59,6 +61,7 @@ void cnf_camera(){
 
     NRF_TWIM0->PSEL.SCL = 8; // set i2c scl to external pin 20
     NRF_TWIM0->PSEL.SDA = 16; // set i2c sda to external pin 19
+    NRF_TWIM0->FREQUENCY = 0x06400000; // frequency to 400kHz
 }
 
 void spi_get_img(){
