@@ -54,9 +54,15 @@ void spi_send_arr(volatile uint32_t *arr, uint32_t size, bool big_endian){
 void send_i2c_cmd(volatile sensor_reg * data_ptr){
     NRF_TWIM0->TXD.PTR = (uint32_t) data_ptr; // set pointer to command
     NRF_TWIM0->EVENTS_STOPPED = 0; // reset flag
+    NRF_TWIM0->EVENTS_LASTTX = 0;
 
     NRF_TWIM0->TASKS_STARTTX = 1; // start transfer over SCCB
-    while(NRF_TWIM0->EVENTS_STOPPED==0); // busy wait
+    
+    while(NRF_TWIM0->EVENTS_LASTTX==0); // busy wait for final byte
+
+    NRF_TWIM0->TASKS_STOP = 1; // issue stop
+
+    while(NRF_TWIM0->EVENTS_STOPPED==0); // busy wait for stop
 
     NRF_TWIM0->TASKS_STOP = 1; // stop sending after its finished
 
@@ -64,7 +70,7 @@ void send_i2c_cmd(volatile sensor_reg * data_ptr){
 
 void cnf_camera(){
     static volatile bool cfgd = false;
-    if(cfgd) return;
+    //if(cfgd) return;
     cfgd = true;
 
     NRF_TWIM0->PSEL.SCL = 8; // set i2c scl to external pin 20
@@ -75,6 +81,7 @@ void cnf_camera(){
     NRF_TWIM0->ADDRESS = 0x30; // set to arducams address
 
     volatile sensor_reg * cam_instructions = OV2640_JPEG_INIT;
+
 
     for(uint32_t i = 0; !(OV2640_JPEG_INIT[i].reg == 0xFF && OV2640_JPEG_INIT[i].val == 0xFF); i++){
         volatile sensor_reg * row_ptr = &cam_instructions[i];

@@ -1,4 +1,4 @@
-#include "MicroBit.h"
+#include "nrf.h"
 
 extern void spi_send_arr(volatile uint32_t * arr, uint32_t size, bool big_endian);
 extern void spi_get_img();
@@ -55,7 +55,7 @@ int main()
         0x05555555,
         0x0AAAAAAA,
         0x0FFFFFFF
-    };
+    };    
 
     spi_get_img();
 
