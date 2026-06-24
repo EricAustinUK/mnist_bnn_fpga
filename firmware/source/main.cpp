@@ -1,6 +1,6 @@
 #include "nrf.h"
 
-extern void spi_send_arr(volatile uint32_t arr_ptr, uint32_t size, bool big_endian);
+extern void spi_send_arr(volatile uint32_t arr_ptr, uint32_t size, bool is_to_nano);
 extern void spi_get_img();
 
 void busy_sleep(uint32_t delay_us){

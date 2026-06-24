@@ -30,23 +30,24 @@ void cnf_spi_pins(){
     NRF_P0->OUTSET = (1 << NANO_CSN) | (1 << CAM_CSN);
 }
 
-void spi_send_arr(volatile uint32_t arr_ptr, uint32_t size, bool big_endian){
+void spi_send_arr(volatile uint32_t arr_ptr, uint32_t size, bool is_to_nano){
     cnf_spi_pins();
+
     // clear event registers
     NRF_SPIM3->EVENTS_END = 0;
 
-    if(big_endian) *((uint32_t *) arr_ptr) = __REV(arr_ptr);
+    if(is_to_nano) *((uint32_t *) arr_ptr) = __REV(arr_ptr);
     // configure TX buffer
     NRF_SPIM3->TXD.PTR = arr_ptr; 
     NRF_SPIM3->TXD.MAXCNT = (size) * sizeof(uint32_t); 
 
-    NRF_P0->OUTCLR = (1 << NANO_CSN); // set CS low
+    NRF_P0->OUTCLR = (1 << (is_to_nano ? NANO_CSN : CAM_CSN)); // set CS low
     
     NRF_SPIM3->TASKS_START = 1; // start sending array
 
     while(NRF_SPIM3->EVENTS_END==0); // busy wait for event to end
 
-    NRF_P0->OUTSET = (1 << NANO_CSN); // set CS high
+    NRF_P0->OUTSET = (1 << (is_to_nano ? NANO_CSN : CAM_CSN)); // set CS high
 
     NRF_SPIM3->TASKS_STOP = 1; // stop sending when buffer is sent
 }
@@ -89,17 +90,7 @@ void cnf_camera(){
 }
 
 void write_cam_reg(sensor_reg reg){
-    NRF_SPIM3->EVENTS_END=0; // clear flags
-    // DMA for 2 bytes
-    NRF_SPIM3->TXD.PTR = (uint32_t) &reg;
-    NRF_SPIM3->TXD.MAXCNT = 2;
-
-    NRF_P0->OUTCLR = (1 << CAM_CSN); // pull CS pin low
-
-    NRF_SPIM3->TASKS_START = 1;
-
-
-    NRF_P0->OUTSET = (1 << CAM_CSN); // reset CS pin to high
+    spi_send_arr((uint32_t) &reg, 2, false);
 }
 
 uint8_t read_cam_reg(uint8_t reg){
