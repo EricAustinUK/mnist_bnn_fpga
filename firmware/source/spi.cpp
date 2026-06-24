@@ -30,14 +30,14 @@ void cnf_spi_pins(){
     NRF_P0->OUTSET = (1 << NANO_CSN) | (1 << CAM_CSN);
 }
 
-void spi_send_arr(volatile uint32_t *arr, uint32_t size, bool big_endian){
+void spi_send_arr(volatile uint32_t arr_ptr, uint32_t size, bool big_endian){
     cnf_spi_pins();
     // clear event registers
     NRF_SPIM3->EVENTS_END = 0;
 
-    if(big_endian) *arr = __REV(*arr);
+    if(big_endian) *((uint32_t *) arr_ptr) = __REV(arr_ptr);
     // configure TX buffer
-    NRF_SPIM3->TXD.PTR = (uint32_t)arr; 
+    NRF_SPIM3->TXD.PTR = arr_ptr; 
     NRF_SPIM3->TXD.MAXCNT = (size) * sizeof(uint32_t); 
 
     NRF_P0->OUTCLR = (1 << NANO_CSN); // set CS low
@@ -88,17 +88,34 @@ void cnf_camera(){
     NRF_TWIM0->ENABLE = 0; // disable twim peripheral
 }
 
+void write_cam_reg(sensor_reg reg){
+    NRF_SPIM3->EVENTS_END=0; // clear flags
+    // DMA for 2 bytes
+    NRF_SPIM3->TXD.PTR = (uint32_t) &reg;
+    NRF_SPIM3->TXD.MAXCNT = 2;
+
+    NRF_P0->OUTCLR = (1 << CAM_CSN); // pull CS pin low
+
+    NRF_SPIM3->TASKS_START = 1;
+
+
+    NRF_P0->OUTSET = (1 << CAM_CSN); // reset CS pin to high
+}
+
+uint8_t read_cam_reg(uint8_t reg){
+
+}
+
 void get_img(){
     cnf_spi_pins();
-    NRF_SPIM3->EVENTS_END=0;
 
     volatile sensor_reg capture_instructions[] = {
         { 0x04, 0x01 }, // clear FIFO
         { 0x04, 0x01 }, // clear FIFO flag? its in arducam's official github...
         { 0x04, 0x02 }, // start capture
-    }
+    };
 
-    //NRF_SPIM3->
+    
 }
 
 void spi_get_img(){

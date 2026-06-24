@@ -1,6 +1,6 @@
 #include "nrf.h"
 
-extern void spi_send_arr(volatile uint32_t * arr, uint32_t size, bool big_endian);
+extern void spi_send_arr(volatile uint32_t arr_ptr, uint32_t size, bool big_endian);
 extern void spi_get_img();
 
 void busy_sleep(uint32_t delay_us){
@@ -58,7 +58,7 @@ int main()
     };    
 
     for(int i = 0; i < 28; i++){
-        spi_send_arr(&test_image[i], 1, true);
+        spi_send_arr((uint32_t) &test_image[i], 1, true);
         busy_sleep(20);
     }
 
