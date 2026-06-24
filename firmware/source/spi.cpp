@@ -98,13 +98,13 @@ uint8_t read_cam_reg(uint8_t reg){
     NRF_SPIM3->EVENTS_END = 0;
     volatile uint16_t send_packet = (reg << 8);
     // configure TX buffer
-    NRF_SPIM3->TXD.PTR = (uint32_t) send_packet; 
+    NRF_SPIM3->TXD.PTR = (uint32_t) &send_packet; 
     NRF_SPIM3->TXD.MAXCNT = 2; 
 
     volatile uint8_t value;
 
     NRF_SPIM3->RXD.MAXCNT = 1;
-    NRF_SPIM3->RXD.PTR = (uint32_t) value;
+    NRF_SPIM3->RXD.PTR = (uint32_t) &value;
 
     NRF_P0->OUTCLR = (1 << CAM_CSN); // set CS low
     
