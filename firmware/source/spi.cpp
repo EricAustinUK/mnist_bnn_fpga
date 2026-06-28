@@ -4,7 +4,6 @@
 #define CAM_CSN 9
 #define NANO_CSN 4
 
-
 void cnf_spi_pins(){
     static volatile bool cfgd = false;
     if(cfgd) return;
@@ -45,7 +44,7 @@ void spi_send_arr(volatile uint32_t arr_ptr, uint32_t size, bool is_to_nano){
     
     NRF_SPIM3->TASKS_START = 1; // start sending array
 
-    while(NRF_SPIM3->EVENTS_END==0); // busy wait for event to end
+    while(NRF_SPIM3->EVENTS_END==0); // wait for event to end
 
     NRF_P0->OUTSET = (1 << (is_to_nano ? NANO_CSN : CAM_CSN)); // set CS high
 
@@ -62,9 +61,7 @@ bool send_i2c_cmd(volatile sensor_reg * data_ptr){
 
     NRF_TWIM0->TASKS_STARTTX = 1; // start transfer over SCCB
 
-    while(NRF_TWIM0->EVENTS_STOPPED==0){
-        __WFE();
-    }; // no longer a busy wait... if i knew it was this easy id have done this from the start!
+    while(NRF_TWIM0->EVENTS_STOPPED==0); // no longer a busy wait... if i knew it was this easy id have done this from the start!
 
     if(NRF_TWIM0->EVENTS_ERROR){
         NRF_TWIM0->EVENTS_ERROR = 0;
@@ -89,11 +86,26 @@ void cnf_camera(){
     volatile sensor_reg select_sensor_bank = { 0xFF, 0x01 };
     volatile sensor_reg reset = { 0x12, 0x80 }; // must send reset for some reason!
 
-    // i2c commands to start camera!
     send_i2c_cmd(&select_sensor_bank);
     send_i2c_cmd(&reset);
 
-    while(!send_i2c_cmd(&select_sensor_bank)); // poll sensor until it ACKs
+    NRF_TIMER2->TASKS_STOP = 1; // stop other timers
+    NRF_TIMER2->BITMODE = 3; // 32 bit
+    NRF_TIMER2->CC[0] = 100000; // set cmp to time
+    NRF_TIMER2->PRESCALER = 4;
+
+    // clear flags
+    NRF_TIMER2->EVENTS_COMPARE[0] = 0;
+    NRF_TIMER2->TASKS_CLEAR = 1;
+
+    // wait for delay to be met
+    NRF_TIMER2->TASKS_START = 1;
+    while(NRF_TIMER2->EVENTS_COMPARE[0] == 0);
+    
+    // clear flags
+    NRF_TIMER2->TASKS_STOP = 1;
+    NRF_TIMER2->TASKS_CLEAR = 1;
+    NRF_TIMER2->EVENTS_COMPARE[0] = 0;
 
     for(uint32_t i = 0; !(OV2640_JPEG_INIT[i].reg == 0xFF && OV2640_JPEG_INIT[i].val == 0xFF); i++){
         volatile sensor_reg * row_ptr = &OV2640_JPEG_INIT[i];
@@ -129,7 +141,7 @@ uint8_t read_cam_reg(uint8_t reg){
     
     NRF_SPIM3->TASKS_START = 1; // start sending array
 
-    while(NRF_SPIM3->EVENTS_END==0); // busy wait for end of rxd and txd buffers
+    while(NRF_SPIM3->EVENTS_END==0); // wait for end of rxd and txd buffers
 
     NRF_SPIM3->TASKS_STOP = 1; // stop when both happen
 
