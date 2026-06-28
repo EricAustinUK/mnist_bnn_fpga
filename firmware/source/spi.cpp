@@ -52,7 +52,7 @@ void spi_send_arr(volatile uint32_t arr_ptr, uint32_t size, bool is_to_nano){
     NRF_SPIM3->TASKS_STOP = 1; // stop sending when buffer is sent
 }
 
-void send_i2c_cmd(volatile sensor_reg * data_ptr){
+bool send_i2c_cmd(volatile sensor_reg * data_ptr){
     NRF_TWIM0->TXD.MAXCNT = 2; // command is two instructions in memory
     NRF_TWIM0->TXD.PTR = (uint32_t) data_ptr; // set pointer to command
     NRF_TWIM0->EVENTS_STOPPED = 0; // reset flag
@@ -62,7 +62,17 @@ void send_i2c_cmd(volatile sensor_reg * data_ptr){
 
     NRF_TWIM0->TASKS_STARTTX = 1; // start transfer over SCCB
 
-    while(NRF_TWIM0->EVENTS_STOPPED==0); // busy wait for stop
+    while(NRF_TWIM0->EVENTS_STOPPED==0){
+        __WFE();
+    }; // no longer a busy wait... if i knew it was this easy id have done this from the start!
+
+    if(NRF_TWIM0->EVENTS_ERROR){
+        NRF_TWIM0->EVENTS_ERROR = 0;
+        NRF_TWIM0->ERRORSRC = NRF_TWIM0->ERRORSRC; // cool refactor: errors do 1 to clear, so writing the current error ONLY clears the flags for that error 
+        return false;
+    }
+
+    return true;
 }
 
 void cnf_camera(){
@@ -75,6 +85,15 @@ void cnf_camera(){
     NRF_TWIM0->FREQUENCY = 0x06400000; // frequency to 400kHz
     NRF_TWIM0->ENABLE = 0b110; // enable twim peripheral
     NRF_TWIM0->ADDRESS = 0x30; // set to arducams address
+
+    volatile sensor_reg select_sensor_bank = { 0xFF, 0x01 };
+    volatile sensor_reg reset = { 0x12, 0x80 }; // must send reset for some reason!
+
+    // i2c commands to start camera!
+    send_i2c_cmd(&select_sensor_bank);
+    send_i2c_cmd(&reset);
+
+    while(!send_i2c_cmd(&select_sensor_bank)); // poll sensor until it ACKs
 
     for(uint32_t i = 0; !(OV2640_JPEG_INIT[i].reg == 0xFF && OV2640_JPEG_INIT[i].val == 0xFF); i++){
         volatile sensor_reg * row_ptr = &OV2640_JPEG_INIT[i];
