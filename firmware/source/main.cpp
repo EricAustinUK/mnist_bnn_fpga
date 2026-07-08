@@ -2,7 +2,7 @@
 #define IMG_H 240
 #define IMG_W 320
 #define GREYSCALE_IMG_SIZE (IMG_W*IMG_H/8)
-#define INIT_PIXEL_THRESHOLD 0x35 // MAY NEED TO MAKE ADAPTIVE
+#define INIT_PIXEL_THRESHOLD 0x35
 #define BLANK_THRESHOLD 5
 
 extern void spi_send_arr(volatile uint32_t arr_ptr, uint32_t size, bool is_to_nano);
@@ -73,13 +73,14 @@ bool is_noise(uint8_t * img_buffer, uint32_t pixel_num){
 }
 
 void inference_loop(uint8_t * threshold){
-    static uint8_t raw_img_buffer[GREYSCALE_IMG_SIZE] = {0};
+    static uint8_t raw_img_buffer[GREYSCALE_IMG_SIZE];
+    for(uint16_t i; i<GREYSCALE_IMG_SIZE; i++) raw_img_buffer[i] = 0xFF;
     get_img(raw_img_buffer, threshold);
     uint16_t min_x = IMG_H;
     uint16_t max_x = 0;
     uint16_t min_y = IMG_W;
     uint16_t max_y = 0;
-    
+
     for(uint16_t i = 0; i < GREYSCALE_IMG_SIZE; i++){
         for(uint8_t j = 0; j < 8; j++){
             uint32_t pixel_num = i * 8 + j;
@@ -94,7 +95,8 @@ void inference_loop(uint8_t * threshold){
         }
     }
 
-    while(true);
+    volatile uint8_t i = 1;
+    i++;
 }
 
 int main()
