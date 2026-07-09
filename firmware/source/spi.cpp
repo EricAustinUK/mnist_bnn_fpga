@@ -142,6 +142,10 @@ void cnf_camera(){
     
 
     NRF_TWIM0->ENABLE = 0; // disable twim peripheral
+
+
+    for(int i = 0; i < 20; i++) // wait 2 seconds for camera to get its bearings
+        slp_100();
 }
 
 void write_cam_reg(sensor_reg reg){
@@ -231,9 +235,6 @@ void spi_recv_img(uint8_t * values, uint8_t * threshold){
 void get_img(uint8_t * output, uint8_t * threshold){
     cnf_spi_pins();
     cnf_camera();
-
-    for(int i = 0; i < 20; i++)
-        slp_100();
 
     write_cam_reg({ 0x04, 0x01 });  // clear FIFO
 
